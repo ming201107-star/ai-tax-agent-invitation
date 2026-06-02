@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>AI财税Agent私享沙龙 · 邀请函 & 客户尽调生成器</title>
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Montserrat:wght@300;400;500;600&family=Noto+Serif+SC:wght@400;600&display=swap');
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Montserrat', 'PingFang SC', sans-serif; background: linear-gradient(135deg, #f5f3f0 0%, #eae6e1 100%); min-height: 100vh; }
+
+        .tabs { display: flex; max-width: 1300px; margin: 20px auto 0; gap: 6px; }
+        .tab-btn { padding: 14px 32px; border: none; font-size: 15px; cursor: pointer; background: rgba(255,255,255,0.4); border-radius: 12px 12px 0 0; font-weight: 600; color: #5a5a5a; transition: all 0.3s ease; }
+        .tab-btn.active { background: #fff; color: #2c1810; box-shadow: 0 -2px 8px rgba(0,0,0,0.08); }
+        .tab-btn:not(.active):hover { background: rgba(255,255,255,0.6); }
+
+        .container { display: none; flex-wrap: wrap; max-width: 1300px; margin: 0 auto 20px; gap: 24px; align-items: flex-start; }
+        .container.active { display: flex; }
+
+        #invitationContainer .editor-panel { background: linear-gradient(135deg, #fff9f5 0%, #fffbf8 100%); box-shadow: 0 8px 32px rgba(201,169,110,0.15); border-radius: 16px; }
+        #surveyContainer .editor-panel { background: #f8f9fa; box-shadow: 0 4px 16px rgba(0,0,0,0.06); border-radius: 12px; }
+
+        .editor-panel { flex: 1 1 400px; min-width: 380px; flex-shrink: 0; padding: 32px; position: sticky; top: 20px; max-height: 90vh; overflow-y: auto; }
+        .editor-panel h2 { margin-bottom: 24px; font-size: 24px; font-weight: 600; }
+        #invitationContainer .editor-panel h2 { color: #2c1810; font-family: 'Playfair Display', serif; }
+        #surveyContainer .editor-panel h2 { color: #1a3a5a; }
+        
+        .editor-panel h4 { margin-top: 24px; margin-bottom: 12px; font-size: 14px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #666; }
+
+        .form-group { margin-bottom: 18px; }
+        .form-group label { display: block; font-weight: 500; margin-bottom: 6px; color: #333; font-size: 14px; }
+        .form-group input[type="text"] { width: 100%; padding: 11px 14px; border: 1.5px solid #ddd; border-radius: 8px; font-size: 14px; font-family: inherit; transition: all 0.2s; }
+        .form-group input[type="text"]:focus { border-color: #c9a96e; background: #fffaf6; outline: none; box-shadow: 0 0 0 3px rgba(201,169,110,0.1); }
+        #surveyContainer .form-group input[type="text"]:focus { border-color: #3b7db6; background: #f0f5ff; box-shadow: 0 0 0 3px rgba(59,125,182,0.1); }
+
+        .demand-row { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+        .demand-row input[type="text"] { flex: 1; }
+        .demand-row label.confirm-label { display: flex; align-items: center; gap: 5px; font-size: 13px; white-space: nowrap; color: #666; }
+        .demand-row input[type="checkbox"] { cursor: pointer; }
+
+        .checkbox-group { margin: 16px 0; display: flex; flex-wrap: wrap; gap: 10px 16px; }
+        .checkbox-group label { font-size: 14px; cursor: pointer; display: flex; align-items: center; gap: 5px; color: #333; }
+        .checkbox-group input { cursor: pointer; }
+
+        .radio-group label { display: block; margin: 8px 0; font-size: 14px; cursor: pointer; color: #333; }
+        .radio-group input { margin-right: 8px; cursor: pointer; }
+        .radio-group input[type="text"] { width: 140px !important; padding: 8px 10px !important; margin-left: 8px !important; }
+
+        .btn { border: none; padding: 14px; font-size: 15px; border-radius: 10px; cursor: pointer; width: 100%; font-weight: 600; margin-top: 14px; transition: all 0.3s; }
+        #invitationContainer .btn { background: linear-gradient(135deg, #c9a96e 0%, #b6923d 100%); color: #fff; box-shadow: 0 4px 12px rgba(201,169,110,0.3); }
+        #invitationContainer .btn:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(201,169,110,0.4); }
+        #surveyContainer .btn { background: #3b7db6; color: #fff; box-shadow: 0 4px 12px rgba(59,125,182,0.2); }
+        #surveyContainer .btn:hover { background: #2d5f94; transform: translateY(-2px); }
+
+        .preview-panel { flex: 1 1 700px; min-width: 0; flex-shrink: 0; display: flex; justify-content: center; padding: 30px; border-radius: 16px; overflow: auto; }
+        #invitationContainer .preview-panel { background: linear-gradient(135deg, rgba(44,24,16,0.98) 0%, rgba(27,17,11,0.99) 100%); }
+        #surveyContainer .preview-panel { background: linear-gradient(135deg, #f0f4f8 0%, #e8ecf0 100%); }
+
+        /* ===== 邀请函高端精致风格 ===== */
+        #invitationContainer .poster { width: 750px; max-width: 100%; padding: 70px 80px; background: linear-gradient(135deg, #1a0f08 0%, #2c1810 50%, #1a0f08 100%); color: #fff; font-family: 'Noto Serif SC', serif; line-height: 1.8; flex-shrink: 0; position: relative; overflow: hidden; }
+        #invitationContainer .poster::before { content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: radial-gradient(circle at 20% 50%, rgba(201,169,110,0.08) 0%, transparent 50%); pointer-events: none; }
+        
+        #invitationContainer .title-header { font-size: 36px; font-family: 'Playfair Display', serif; color: #d4a574; text-align: left; margin-bottom: 45px; font-weight: 700; letter-spacing: 4px; position: relative; z-index: 1; }
+        
+        #invitationContainer .poster .cover { text-align: left; padding-bottom: 45px; margin-bottom: 55px; border-bottom: 1px solid rgba(201,169,110,0.4); position: relative; z-index: 1; }
+        #invitationContainer .cover .subtitle { font-size: 18px; letter-spacing: 8px; color: #d4a574; margin-bottom: 20px; font-weight: 300; font-family: 'Montserrat', sans-serif; text-transform: uppercase; }
+        #invitationContainer .cover h1 { font-size: 48px; color: #e8d5c4; margin: 20px 0; line-height: 1.4; font-weight: 600; letter-spacing: 1px; font-family: 'Playfair Display', serif; }
+        #invitationContainer .cover .invitation-text { font-size: 24px; margin: 30px 0 15px; font-weight: 400; color: #fff; font-family: 'Noto Serif SC', serif; letter-spacing: 1px; }
+        #invitationContainer .cover .invitation-text .client-name { color: #d4a574; font-weight: 600; font-size: 28px; }
+        #invitationContainer .cover .code, #invitationContainer .cover .date, #invitationContainer .cover .address { font-size: 16px; margin: 10px 0; opacity: 0.75; font-family: 'Montserrat', sans-serif; letter-spacing: 0.5px; text-align: left; }
+
+        #invitationContainer .section { margin-bottom: 45px; position: relative; z-index: 1; }
+        #invitationContainer .section h3 { font-size: 28px; border-left: 4px solid #d4a574; padding-left: 20px; margin-bottom: 25px; font-weight: 600; letter-spacing: 1px; font-family: 'Playfair Display', serif; color: #e8d5c4; text-align: left; }
+
+        #invitationContainer .agenda-item { font-size: 17px; margin: 14px 0; display: flex; align-items: baseline; font-family: 'Montserrat', sans-serif; text-align: left; }
+        #invitationContainer .agenda-item .time { color: #d4a574; font-weight: 600; min-width: 140px; letter-spacing: 0.5px; }
+        #invitationContainer .agenda-item .desc { flex: 1; color: #e8d5c4; }
+        #invitationContainer .agenda-item.sub { margin-left: 150px; font-size: 15px; opacity: 0.7; margin-top: 3px; margin-bottom: 12px; color: #d4a574; }
+
+        #invitationContainer .rights-item { font-size: 18px; margin: 12px 0; display: flex; align-items: center; font-family: 'Montserrat', sans-serif; text-align: left; }
+        #invitationContainer .rights-item .icon { color: #d4a574; margin-right: 14px; font-size: 18px; }
+
+        #invitationContainer .motto { font-size: 22px; font-family: 'Playfair Display', serif; color: #d4a574; margin: 20px 0; font-style: italic; letter-spacing: 2px; text-align: left; }
+
+        #invitationContainer .footer-note { text-align: left; margin-top: 50px; font-size: 15px; opacity: 0.6; letter-spacing: 3px; font-family: 'Montserrat', sans-serif; text-transform: uppercase; }
+        #invitationContainer .divider { border: none; border-top: 1px solid rgba(201,169,110,0.3); margin: 35px 0 30px; }
+
+        /* ===== 客户尽调简洁专业风格 ===== */
+        #surveyContainer .poster { width: 750px; max-width: 100%; padding: 50px 60px; background: #fff; color: #1a1a1a; font-family: 'Montserrat', 'PingFang SC', sans-serif; line-height: 1.7; flex-shrink: 0; box-shadow: 0 2px 12px rgba(0,0,0,0.05); }
+
+        #surveyContainer .poster .cover { text-align: center; padding-bottom: 30px; margin-bottom: 40px; border-bottom: 2px solid #3b7db6; }
+        #surveyContainer .cover .subtitle { font-size: 14px; letter-spacing: 4px; color: #3b7db6; margin-bottom: 12px; font-weight: 600; text-transform: uppercase; }
+        #surveyContainer .cover h1 { font-size: 32px; color: #1a3a5a; margin: 12px 0; line-height: 1.3; font-weight: 700; letter-spacing: 0px; }
+        #surveyContainer .cover .name { font-size: 26px; margin: 18px 0 10px; font-weight: 600; color: #1a3a5a; }
+        #surveyContainer .cover .code { font-size: 14px; margin: 8px 0; color: #666; }
+
+        #surveyContainer .section { margin-bottom: 32px; }
+        #surveyContainer .section h3 { font-size: 18px; border-left: 3px solid #3b7db6; padding-left: 14px; margin-bottom: 16px; font-weight: 700; letter-spacing: 0px; color: #1a3a5a; text-transform: uppercase; font-size: 16px; }
+
+        #surveyContainer .demand-table { width: 100%; font-size: 14px; margin-top: 12px; border-collapse: collapse; }
+        #surveyContainer .demand-table th, #surveyContainer .demand-table td { padding: 12px 10px; text-align: left; border-bottom: 1px solid #e0e0e0; }
+        #surveyContainer .demand-table th { color: #1a3a5a; font-weight: 700; background: #f5f7fa; }
+        #surveyContainer .demand-table td { color: #333; font-size: 13px; }
+        #surveyContainer .demand-table tr:hover { background: #f9fafc; }
+
+        #surveyContainer .checkbox-box { display: inline-block; width: 20px; height: 20px; border: 2px solid #ddd; vertical-align: middle; border-radius: 3px; position: relative; background: #fff; }
+        #surveyContainer .checkbox-box.checked { background: #3b7db6; border-color: #3b7db6; }
+        #surveyContainer .checkbox-box.checked::after { content: '✓'; position: absolute; top: -3px; left: 3px; color: #fff; font-size: 14px; font-weight: bold; }
+
+        #surveyContainer .new-demand { margin: 12px 0 6px; font-size: 14px; color: #666; }
+        #surveyContainer .value-list { display: flex; flex-wrap: wrap; gap: 10px 16px; margin-top: 12px; }
+        #surveyContainer .value-item { width: calc(50% - 8px); font-size: 14px; display: flex; align-items: center; color: #333; }
+        #surveyContainer .value-item .marker { color: #3b7db6; margin-right: 6px; font-weight: bold; }
+
+        #surveyContainer .questions div { font-size: 14px; line-height: 2; border-bottom: 1px solid #e8e8e8; margin-bottom: 12px; padding-bottom: 8px; color: #333; }
+        #surveyContainer .next-step { font-size: 14px; margin: 8px 0; color: #1a3a5a; font-weight: 500; }
+
+        #surveyContainer .sign-area { display: flex; justify-content: space-between; margin-top: 40px; padding-top: 24px; border-top: 1px solid #e0e0e0; font-size: 14px; color: #666; }
+        #surveyContainer .sign-area > div { width: 48%; }
+        #surveyContainer .footer-note { text-align: center; margin-top: 30px; font-size: 12px; color: #999; letter-spacing: 1px; }
+        #surveyContainer .divider { border: none; border-top: 1px solid #e0e0e0; margin: 20px 0 18px; }
+    </style>
+</head>
+<body>
+    <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('invitation')">📨 邀请函</button>
+        <button class="tab-btn" onclick="switchTab('survey')">📋 客户尽调</button>
+    </div>
+
+    <!-- ========== 邀请函模块 ========== -->
+    <div id="invitationContainer" class="container active">
+        <div class="editor-panel">
+            <h2>✏️ 邀请函信息</h2>
+            <div class="form-group">
+                <label>邀请语前缀</label>
+                <input type="text" id="invPrefix" value="诚挚邀请">
+            </div>
+            <div class="form-group">
+                <label>客户姓名</label>
+                <input type="text" id="invName" value="张总">
+            </div>
+            <div class="form-group">
+                <label>邀请语后缀</label>
+                <input type="text" id="invSuffix" value="参加">
+            </div>
+            <div class="form-group">
+                <label>邀请编号（唯一）</label>
+                <input type="text" id="invCode" value="VIP202606-001">
+            </div>
+            <div class="form-group">
+                <label>会议地址</label>
+                <input type="text" id="invAddress" value="杭州·XX酒店 3楼宴会厅">
+            </div>
+            <button class="btn" onclick="exportInvitation()">⬇️ 导出邀请函 (PNG)</button>
+        </div>
+        <div class="preview-panel">
+            <div id="invitationCapture" class="poster">
+                <div class="title-header">邀请函</div>
+                
+                <div class="cover">
+                    <div class="subtitle">闭门私享 · 仅限受邀</div>
+                    <h1>AI财税Agent如何真正用到企业里降本增效</h1>
+                    <div class="invitation-text" id="invPrevInvitation">诚挚邀请 <span class="client-name">张总</span> 参加</div>
+                    <div class="code">邀请编号：<span id="invPrevCode">VIP202606-001</span></div>
+                    <div class="date">2026年6月25日-26日</div>
+                    <div class="address" id="invPrevAddress">杭州·XX酒店 3楼宴会厅</div>
+                </div>
+
+                <div class="section">
+                    <h3>活动议程</h3>
+                    <div class="agenda-item"><span class="time">13:20-13:50</span><span class="desc">嘉宾签到 & 开幕致辞</span></div>
+                    <div class="agenda-item sub">活动正式启动</div>
+                    <div class="agenda-item"><span class="time">14:00-15:30</span><span class="desc">AI 会如何改变世界？</span></div>
+                    <div class="agenda-item sub">主讲嘉宾：弘毅创始人</div>
+                    <div class="agenda-item"><span class="time">15:50-17:50</span><span class="desc">财务自动化 × 决策智动化</span></div>
+                    <div class="agenda-item sub">主讲嘉宾：宋守成（师爷）及团队</div>
+                    <div class="agenda-item"><span class="time">18:30+</span><span class="desc">晚宴交流 & 资源链接</span></div>
+                    <div class="agenda-item sub">企业家深度交流与互动环节</div>
+                    <div class="agenda-item"><span class="time">次日上午</span><span class="desc">AI 赋能企业精益化管理</span></div>
+                    <div class="agenda-item sub">主讲嘉宾：王总</div>
+                </div>
+
+                <hr class="divider">
+
+                <div class="section">
+                    <h3>您的专属权益</h3>
+                    <div class="rights-item"><span class="icon">✅</span> VIP席位</div>
+                    <div class="rights-item"><span class="icon">✅</span> 凭函签到</div>
+                    <div class="rights-item"><span class="icon">✅</span> 一对一深度交流</div>
+                    <div class="rights-item"><span class="icon">✅</span> 现场专属福利（签约优惠）</div>
+                </div>
+
+                <hr class="divider">
+
+                <div class="section">
+                    <h3>创始人格言</h3>
+                    <div class="motto">税的香，找师爷</div>
+                </div>
+
+                <div class="footer-note">凭此函签到入场</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== 客户尽调模块 ========== -->
+    <div id="surveyContainer" class="container">
+        <div class="editor-panel">
+            <h2>✏️ 客户尽调信息</h2>
+            <div class="form-group">
+                <label>客户姓名</label>
+                <input type="text" id="clientName" value="张总">
+            </div>
+            <div class="form-group">
+                <label>邀请编号</label>
+                <input type="text" id="inviteCode" value="VIP202606-001">
+            </div>
+
+            <h4 style="margin-top:20px;">📌 会前确认需求</h4>
+            <div class="demand-row"><input type="text" id="dem1" value="财务核算自动化，减少人工复核"><label class="confirm-label"><input type="checkbox" class="confirm-check" id="confirm1" checked> 会前已确认</label></div>
+            <div class="demand-row"><input type="text" id="dem2" value="发票管理与税务合规预警"><label class="confirm-label"><input type="checkbox" class="confirm-check" id="confirm2"> 会前已确认</label></div>
+            <div class="demand-row"><input type="text" id="dem3" value="多主体经营数据汇总与分析"><label class="confirm-label"><input type="checkbox" class="confirm-check" id="confirm3"> 会前已确认</label></div>
+            <div class="demand-row"><input type="text" id="dem4" value="报销流程与成本费用管控"><label class="confirm-label"><input type="checkbox" class="confirm-check" id="confirm4"> 会前已确认</label></div>
+            <div class="demand-row"><input type="text" id="dem5" value="经营报表自动生成与可视化"><label class="confirm-label"><input type="checkbox" class="confirm-check" id="confirm5" checked> 会前已确认</label></div>
+
+            <h4 style="margin-top:20px;">✨ AI降本增效价值点</h4>
+            <div class="checkbox-group">
+                <label><input type="checkbox" class="val-check" value="替代重复劳动" checked> 替代重复劳动</label>
+                <label><input type="checkbox" class="val-check" value="消除人为差错"> 消除人为差错</label>
+                <label><input type="checkbox" class="val-check" value="实时风险预警"> 实时风险预警</label>
+                <label><input type="checkbox" class="val-check" value="报表自动生成" checked> 报表自动生成</label>
+                <label><input type="checkbox" class="val-check" value="降本可量化"> 降本可量化</label>
+                <label><input type="checkbox" class="val-check" value="与现有系统无缝对接"> 与现有系统无缝对接</label>
+            </div>
+
+            <h4>❓ 希望解决的问题</h4>
+            <div class="form-group"><input type="text" id="q1" placeholder="问题1"></div>
+            <div class="form-group"><input type="text" id="q2" placeholder="问题2"></div>
+            <div class="form-group"><input type="text" id="q3" placeholder="问题3"></div>
+
+            <h4>🚀 下一步意向</h4>
+            <div class="radio-group">
+                <label><input type="radio" name="next" value="尽快安排深度演示，出定制方案" checked> 尽快安排深度演示</label>
+                <label><input type="radio" name="next" value="小场景试点，见效再推广"> 小场景试点</label>
+                <label><input type="radio" name="next" value="暂时不需要，持续关注"> 暂时不需要</label>
+                <label><input type="radio" name="next" value="other"> 其他：<input type="text" id="nextOther" placeholder="请填写" style="width:140px; margin-left:5px;"></label>
+            </div>
+
+            <button class="btn" onclick="exportSurvey()">⬇️ 导出客户尽调 (PNG)</button>
+        </div>
+
+        <div class="preview-panel">
+            <div id="surveyCapture" class="poster">
+                <div class="cover">
+                    <div class="subtitle">客户需求确认与行动意向</div>
+                    <h1>AI财税Agent降本增效</h1>
+                    <div class="name" id="prevName">张总</div>
+                    <div class="code">编号：<span id="prevCode">VIP202606-001</span></div>
+                </div>
+
+                <div class="section">
+                    <h3>需求确认表</h3>
+                    <table class="demand-table">
+                        <tr><th>序号</th><th>核心需求</th><th>会前确认</th><th>现场新增</th></tr>
+                        <tr><td>1</td><td id="preDem1"></td><td><span class="checkbox-box" id="preConfirm1"></span></td><td><span class="checkbox-box"></span></td></tr>
+                        <tr><td>2</td><td id="preDem2"></td><td><span class="checkbox-box" id="preConfirm2"></span></td><td><span class="checkbox-box"></span></td></tr>
+                        <tr><td>3</td><td id="preDem3"></td><td><span class="checkbox-box" id="preConfirm3"></span></td><td><span class="checkbox-box"></span></td></tr>
+                        <tr><td>4</td><td id="preDem4"></td><td><span class="checkbox-box" id="preConfirm4"></span></td><td><span class="checkbox-box"></span></td></tr>
+                        <tr><td>5</td><td id="preDem5"></td><td><span class="checkbox-box" id="preConfirm5"></span></td><td><span class="checkbox-box"></span></td></tr>
+                    </table>
+                    <div class="new-demand">✚ 现场新增需求：_________________</div>
+                    <div class="new-demand">✚ 现场新增需求：_________________</div>
+                </div>
+
+                <hr class="divider">
+                <div class="section">
+                    <h3>AI降本增效产品价值</h3>
+                    <div class="value-list" id="previewValues"></div>
+                </div>
+
+                <hr class="divider">
+                <div class="section">
+                    <h3>我希望重点解决的问题</h3>
+                    <div class="questions">
+                        <div id="preQ1">1. ________________________</div>
+                        <div id="preQ2">2. ________________________</div>
+                        <div id="preQ3">3. ________________________</div>
+                    </div>
+                </div>
+
+                <hr class="divider">
+                <div class="section">
+                    <h3>下一步</h3>
+                    <div class="next-step" id="preNext"></div>
+                </div>
+
+                <div class="sign-area">
+                    <div>
+                        <div>以上需求已确认。</div>
+                        <div>我司将提供针对性答疑。</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 切换标签
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.container').forEach(c => c.classList.remove('active'));
+            if (tab === 'invitation') {
+                document.querySelector('.tab-btn:nth-child(1)').classList.add('active');
+                document.getElementById('invitationContainer').classList.add('active');
+            } else {
+                document.querySelector('.tab-btn:nth-child(2)').classList.add('active');
+                document.getElementById('surveyContainer').classList.add('active');
+            }
+        }
+
+        // ========== 邀请函逻辑 ==========
+        const invPrefix = document.getElementById('invPrefix');
+        const invName = document.getElementById('invName');
+        const invSuffix = document.getElementById('invSuffix');
+        const invCode = document.getElementById('invCode');
+        const invAddress = document.getElementById('invAddress');
+        const invPrevName = document.getElementById('invPrevName');
+        const invPrevCode = document.getElementById('invPrevCode');
+        const invPrevAddress = document.getElementById('invPrevAddress');
+        const invPrevInvitation = document.getElementById('invPrevInvitation');
+
+        function updateInvitation() {
+            const prefix = invPrefix.value.trim() || '诚挚邀请';
+            const name = invName.value.trim() || '尊贵嘉宾';
+            const suffix = invSuffix.value.trim() || '参加';
+            
+            invPrevInvitation.innerHTML = `${prefix} <span class="client-name">${name}</span> ${suffix}`;
+            invPrevCode.textContent = invCode.value.trim();
+            invPrevAddress.textContent = invAddress.value.trim();
+        }
+        invPrefix.addEventListener('input', updateInvitation);
+        invName.addEventListener('input', updateInvitation);
+        invSuffix.addEventListener('input', updateInvitation);
+        invCode.addEventListener('input', updateInvitation);
+        invAddress.addEventListener('input', updateInvitation);
+        updateInvitation();
+
+        window.exportInvitation = function() {
+            html2canvas(document.getElementById('invitationCapture'), {
+                scale: 2,
+                backgroundColor: '#1a0f08',
+                allowTaint: false,
+                useCORS: true
+            }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = `邀请函_${invName.value.trim() || '嘉宾'}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            }).catch(err => {
+                alert('导出失败');
+                console.error(err);
+            });
+        };
+
+        // ========== 客户尽调逻辑 ==========
+        (function() {
+            const clientName = document.getElementById('clientName');
+            const inviteCode = document.getElementById('inviteCode');
+            const demInputs = [
+                document.getElementById('dem1'), document.getElementById('dem2'),
+                document.getElementById('dem3'), document.getElementById('dem4'), document.getElementById('dem5')
+            ];
+            const confirmChecks = [
+                document.getElementById('confirm1'), document.getElementById('confirm2'),
+                document.getElementById('confirm3'), document.getElementById('confirm4'), document.getElementById('confirm5')
+            ];
+            const q1 = document.getElementById('q1');
+            const q2 = document.getElementById('q2');
+            const q3 = document.getElementById('q3');
+            const nextOther = document.getElementById('nextOther');
+            const valChecks = document.querySelectorAll('#surveyContainer .val-check');
+            const nextRadios = document.querySelectorAll('#surveyContainer input[name="next"]');
+
+            const prevName = document.getElementById('prevName');
+            const prevCode = document.getElementById('prevCode');
+            const prevDemCells = [
+                document.getElementById('preDem1'), document.getElementById('preDem2'),
+                document.getElementById('preDem3'), document.getElementById('preDem4'), document.getElementById('preDem5')
+            ];
+            const prevConfirmSpans = [
+                document.getElementById('preConfirm1'), document.getElementById('preConfirm2'),
+                document.getElementById('preConfirm3'), document.getElementById('preConfirm4'), document.getElementById('preConfirm5')
+            ];
+            const prevQ1 = document.getElementById('preQ1');
+            const prevQ2 = document.getElementById('preQ2');
+            const prevQ3 = document.getElementById('preQ3');
+            const prevNext = document.getElementById('preNext');
+            const prevValues = document.getElementById('previewValues');
+
+            function updateSurvey() {
+                prevName.textContent = clientName.value.trim() || '客户';
+                prevCode.textContent = inviteCode.value.trim();
+
+                for (let i = 0; i < 5; i++) {
+                    prevDemCells[i].textContent = demInputs[i].value.trim() || '——';
+                    if (confirmChecks[i].checked) {
+                        prevConfirmSpans[i].classList.add('checked');
+                    } else {
+                        prevConfirmSpans[i].classList.remove('checked');
+                    }
+                }
+
+                prevQ1.textContent = '1. ' + (q1.value.trim() || '________________________');
+                prevQ2.textContent = '2. ' + (q2.value.trim() || '________________________');
+                prevQ3.textContent = '3. ' + (q3.value.trim() || '________________________');
+
+                let selectedNext = document.querySelector('#surveyContainer input[name="next"]:checked');
+                if (selectedNext) {
+                    if (selectedNext.value === 'other') {
+                        prevNext.textContent = '☑ 其他：' + (nextOther.value.trim() || '________');
+                    } else {
+                        prevNext.textContent = '☑ ' + selectedNext.value;
+                    }
+                }
+
+                let valueHtml = '';
+                valChecks.forEach(cb => {
+                    if (cb.checked) {
+                        valueHtml += `<div class="value-item"><span class="marker">☑</span> ${cb.value}</div>`;
+                    }
+                });
+                prevValues.innerHTML = valueHtml;
+            }
+
+            const allInputs = [clientName, inviteCode, ...demInputs, q1, q2, q3, nextOther];
+            allInputs.forEach(inp => inp.addEventListener('input', updateSurvey));
+            confirmChecks.forEach(cb => cb.addEventListener('change', updateSurvey));
+            valChecks.forEach(cb => cb.addEventListener('change', updateSurvey));
+            nextRadios.forEach(rd => rd.addEventListener('change', updateSurvey));
+            updateSurvey();
+
+            window.exportSurvey = function() {
+                html2canvas(document.getElementById('surveyCapture'), {
+                    scale: 2,
+                    backgroundColor: '#fff',
+                    allowTaint: false,
+                    useCORS: true
+                }).then(canvas => {
+                    const link = document.createElement('a');
+                    link.download = `客户尽调_${clientName.value.trim() || '客户'}.png`;
+                    link.href = canvas.toDataURL('image/png');
+                    link.click();
+                }).catch(err => {
+                    alert('导出失败');
+                    console.error(err);
+                });
+            };
+        })();
+    </script>
+</body>
+</html>
